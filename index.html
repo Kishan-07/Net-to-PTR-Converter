@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Net to PTR Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="number"], select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .gst-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            background: #f9fff9;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Net to PTR Converter</h2>
+<form id="netToPtrForm">
+    <label for="mrp">MRP:</label>
+    <input type="number" id="mrp" placeholder="Enter MRP" required>
+
+    <label for="gst">GST:</label>
+    <select id="gst">
+        <option value="12" selected>12%</option>
+        <option value="18">18%</option>
+    </select>
+
+    <label for="retailMargin">Retail Margin (%):</label>
+    <input type="number" id="retailMargin" placeholder="Enter Retail Margin" value="20" required>
+
+    <label for="quantity">Quantity Sold:</label>
+    <input type="number" id="quantity" placeholder="Enter Quantity Sold" required>
+
+    <label for="netRate">Net Rate:</label>
+    <input type="number" id="netRate" placeholder="Enter Net Rate (per strip)" required>
+
+    <label>GST Calculation:</label>
+    <div class="gst-options">
+        <label><input type="radio" name="gstType" value="excluding" checked> Excluding</label>
+        <label><input type="radio" name="gstType" value="including"> Including</label>
+    </div>
+
+    <button type="button" onclick="calculate()">Calculate</button>
+</form>
+
+<div class="result" id="result" style="display: none;"></div>
+
+<script>
+    function calculate() {
+        // Input values
+        const mrp = parseFloat(document.getElementById('mrp').value);
+        const gstRate = parseFloat(document.getElementById('gst').value) / 100;
+        const retailMargin = parseFloat(document.getElementById('retailMargin').value) / 100;
+        const quantitySold = parseFloat(document.getElementById('quantity').value);
+        let netRate = parseFloat(document.getElementById('netRate').value);
+
+        const gstType = document.querySelector('input[name="gstType"]:checked').value;
+
+        // Convert net rate if GST is included
+        if (gstType === "including") {
+            netRate = netRate / (1 + gstRate);
+        }
+
+        // Calculate PTR
+        const ptr = (mrp / (1 + gstRate)) * (1 - retailMargin);
+
+        // Bill excluding GST
+        const billValue = netRate * quantitySold;
+
+        // Number of strips sold at PTR
+        const stripsAtPtr = Math.ceil(billValue / ptr);
+
+        // Free strips
+        const freeStrips = quantitySold - stripsAtPtr;
+
+        // Calculate discount
+        const discount = (stripsAtPtr * ptr) - billValue;
+
+        // Display results
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerHTML = `
+            <h4>Results</h4>
+            <p><strong>Scheme:</strong> ${stripsAtPtr} + ${freeStrips}</p>
+            <p><strong>Discount:</strong> ₹ ${discount.toFixed(2)}</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
